@@ -36,9 +36,9 @@ agent-specific OCI tag:
 | --- | --- | --- |
 | Codex | `codex/` | `ghcr.io/dvdksn/browser-kit:codex` |
 
-Publish the Codex variant with:
+Pushes to `main` publish each variant through the matrix in
+`.github/workflows/publish.yml`. To publish the Codex variant manually:
 
 ```console
 sbx kit push ./codex ghcr.io/dvdksn/browser-kit:codex
 ```
-
