@@ -50,6 +50,22 @@ sandbox's network policy; permit the sites your task needs through that policy.
 The launcher retains Chromium's sandbox, isolated profiles, blocked service
 workers, and sandbox-local output under `/tmp/browser-use`.
 
+## Missing MCP executable
+
+If Codex reports `MCP startup failed: No such file or directory (os error 2)`,
+check that every selected kit uses v3 and that the workload supplies `codex`
+or is composed with a v3 Codex mixin.
+
+A mixed v2/v3 set can run the registration hook through the legacy runtime
+path without assembling the browser image layers. The MCP entry then points
+to `/usr/local/bin/browser-use-mcp`, which is absent. Kit setup checks for
+the launcher before registering it.
+
+For a built-in v2 Codex agent with v2 mixins such as `github-ssh`, use the
+`ghcr.io/dvdksn/browser-kit:codex` tag in a fresh sandbox. To use `codex-v3`,
+create a fresh sandbox with a v3 workload and convert or omit the v2 mixins.
+See the local v3 example above.
+
 ## Build and publish
 
 Each agent integration lives in its own directory:

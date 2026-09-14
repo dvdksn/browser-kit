@@ -4,7 +4,7 @@ kind: mixin
 displayName: Browser Use for Codex
 description: Adds a headless Chromium browser controlled through Playwright MCP
 sourceUrl: https://github.com/dvdksn/browser-kit
-version: "3.0.0"
+version: "3.0.1"
 provides: [browser-use-codex]
 requires: [codex]
 dockerfile: spec.dockerfile
@@ -15,6 +15,11 @@ capabilities:
       install:
         - command: |
             set -eu
+            if [ ! -x /usr/local/bin/browser-use-mcp ]; then
+              echo "Browser kit image content is missing. Use a v3 workload and v3 mixins; for a v2 sandbox, use ghcr.io/dvdksn/browser-kit:codex instead." >&2
+              exit 1
+            fi
+            /usr/local/bin/browser-use-mcp --version
             codex mcp remove browser-use >/dev/null 2>&1 || true
             codex mcp add browser-use --env PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright -- /usr/local/bin/browser-use-mcp
           user: "1000"
