@@ -3,7 +3,7 @@ name: Publish kits
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [v3]
     paths:
       - codex/**
       - .github/workflows/publish.yml
@@ -14,25 +14,19 @@ permissions:
 
 jobs:
   publish:
+    if: github.ref == 'refs/heads/v3'
     runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
           - variant: codex
-            tag: codex
+            tag: codex-v3
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install sbx
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p .tmp
-          curl -fsSL \
-            https://github.com/docker/sbx-releases/releases/download/v0.42.0/DockerSandboxes-linux-amd64.tar.gz \
-            -o .tmp/sbx.tar.gz
-          echo "a88c56f02435974145a86d983beab4458b412c2133d5da0df7f12e117d8152e7  .tmp/sbx.tar.gz" | sha256sum --check
-          tar -xzf .tmp/sbx.tar.gz -C .tmp
+      - uses: docker/setup-qemu-action@v3
+
+      - uses: docker/setup-buildx-action@v3
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -41,8 +35,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Validate kit
-        run: .tmp/docker-sbx/sbx kit validate "./${{ matrix.variant }}"
-
-      - name: Publish kit
-        run: .tmp/docker-sbx/sbx kit push "./${{ matrix.variant }}" "ghcr.io/dvdksn/browser-kit:${{ matrix.tag }}"
+      - name: Build, validate, and publish kit
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.variant }}
+          file: ./${{ matrix.variant }}/spec.yaml
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/dvdksn/browser-kit:${{ matrix.tag }}
